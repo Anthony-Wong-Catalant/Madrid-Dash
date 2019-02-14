@@ -1,0 +1,11 @@
+---Grab only error related events with detail
+With error as (select event, properties_error_title1, 
+time_stamp , properties_error, context_os_name, right(context_locale,2) as Country, left(context_locale,2) as language
+from madrid.madrid
+Where event like '%error%' or event like '%Error%')
+
+Select count(event), date_trunc('day',time_stamp) as day,event,
+properties_error,properties_error_title1, context_os_name, country, language 
+from error
+GROUP BY day, event,properties_error,properties_error_title1, 
+context_os_name, country, language
