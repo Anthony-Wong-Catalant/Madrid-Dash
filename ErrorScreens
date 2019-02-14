@@ -1,0 +1,10 @@
+With errorscreens as (select name, properties_error_title1, 
+time_stamp , properties_error, context_os_name, context_locale
+from madrid.madrid
+Where name like '%error%' or name like '%Error%')
+
+Select count(name), date_trunc('day',time_stamp) as day,name,
+properties_error,properties_error_title1, context_os_name, right(context_locale,2) as country, Left (context_locale,2) as language
+from errorscreens
+GROUP BY day, name,properties_error,properties_error_title1, 
+context_os_name, country, language
