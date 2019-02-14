@@ -1,0 +1,5 @@
+Select count(event), date_trunc('day',time_stamp) as day,
+context_os_name, right(context_locale,2) as country, left(context_locale,2) as language
+From madrid.madrid
+Where event is not null
+group by day, context_os_name, country, language
