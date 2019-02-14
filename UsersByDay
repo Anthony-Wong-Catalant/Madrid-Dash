@@ -1,0 +1,21 @@
+---Only users with products associated
+With userswproducts as (Select userid, properties_product_guid, max(time_stamp)
+from madrid.madrid
+Where properties_product_guid is not null and userid is not null
+GROUP BY userid, properties_product_guid),
+
+---product type by user
+Product as (Select userid, 
+Max(case when properties_product_type='eddie' then 1 else 0 end) as 'eddie',
+Max(case when properties_product_type='gingerCheevers' then 1 else 0 end) as 'gingerCheevers',
+Max(case when properties_product_type='professor' then 1 else 0 end) as 'professor'
+From madrid.madrid
+GROUP BY userid)
+
+Select Count(DISTINCT madrid.userid) as cntdusers, date_trunc('day',time_stamp) as date_day,
+strleft(context_locale,2) as language, strright(context_locale,2) as CountryCode, context_os_name, eddie, gingerCheevers, professor
+from madrid.madrid
+INNER JOIN userswproducts on madrid.userid=userswproducts.userid
+Inner Join Product on Product.userid=userswproducts.userid
+Where event='Application Opened' and time_stamp<now()
+GROUP BY date_day, language, CountryCode, context_os_name, eddie, gingerCheevers, professor
