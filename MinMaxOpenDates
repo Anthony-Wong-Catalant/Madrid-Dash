@@ -1,0 +1,22 @@
+---only grab users with products
+With userswproducts as (Select userid, properties_product_guid, max(time_stamp)
+from madrid.madrid
+Where properties_product_guid is not null and userid is not null
+GROUP BY userid, properties_product_guid),
+
+---first opened date
+initial as (select userid,min(date_trunc('day',time_stamp)) as min_date from madrid.madrid
+where Event="Application Opened"
+group by userid),
+
+---last open date
+final as (select userid, max(date_trunc('day',time_stamp)) as max_date from madrid.madrid
+where Event="Application Opened"
+group by userid)
+
+Select count(DISTINCT madrid.userid) as cntdusers, min_date, max_date, strright(context_locale,2) as Country_Code
+from madrid.madrid
+INNER JOIN initial on initial.userid=madrid.userid
+INNER JOIN final on final.userid=madrid.userid
+INNER JOIN userswproducts on userswproducts.userid=madrid.userid
+GROUP BY min_date, max_date, Country_Code
