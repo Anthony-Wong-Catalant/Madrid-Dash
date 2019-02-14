@@ -1,0 +1,23 @@
+---min date for user
+With mindate as (Select userid, min(time_stamp) as firsttime 
+from madrid.madrid
+Where type='track'
+GROUP BY userid),
+
+---users first events
+userfirstevents as (Select userid, time_stamp,event,
+properties_product_type,properties_button_description, 
+context_os_name 
+from madrid.madrid
+where type='track'),
+
+---Rank events based on time
+RankEvents as  (Select mindate.userid,event,time_stamp,properties_product_type, properties_button_description, context_os_name,
+dense_rank() Over (PARTITION BY mindate.userid ORDER BY time_stamp asc) as Rank
+FROM mindate
+INNER JOIN userfirstevents on mindate.userid=userfirstevents.userid and date_add(firsttime,1)>=time_stamp)
+
+Select count(event),rank,event,properties_product_type,properties_button_description, context_os_name from RankEvents
+GROUP BY event, rank, properties_button_description, 
+properties_product_type, context_os_name
+ORDER BY rank asc
