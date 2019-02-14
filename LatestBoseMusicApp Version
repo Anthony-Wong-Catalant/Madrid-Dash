@@ -1,0 +1,17 @@
+With usermaxevent as (Select userid ,Max(time_stamp) as latestevent
+from madrid.madrid
+GROUP BY userid),
+
+userproducts as (Select 
+Max(Case WHEN properties_product_type='eddie' then 1 else 0 end) as HasEddie,
+Max(Case WHEN properties_product_type='gingerCheevers' then 1 else 0 end) as HasGingerCheevers,
+Max(Case WHEN properties_product_type='professor' then 1 else 0 end) as HasProfessor, userid
+from madrid.madrid
+group by userid)
+
+Select usermaxevent.userid, latestevent, context_app_version, context_os_name, 
+strright(context_locale,2) as country, strleft(context_locale,2) as language, HasEddie, HasGingerCheevers, HasProfessor 
+from usermaxevent
+INNER JOIN madrid.madrid on time_stamp=latestevent and madrid.userid=usermaxevent.userid
+INNER JOIN userproducts on usermaxevent.userid=userproducts.userid
+GROUP BY userid,latestevent,context_app_version, context_os_name, country, language, HasEddie, HasGingerCheevers, HasProfessor
