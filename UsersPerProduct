@@ -1,0 +1,32 @@
+---count users per product
+With product_usercount as (Select count(DISTINCT userid) as cntusers, properties_product_guid, 
+properties_product_type
+from madrid.madrid
+Where properties_product_guid is not null
+GROUP BY properties_product_guid,properties_product_type),
+
+---get latest event
+latestevent as (Select properties_product_guid, max(time_stamp) as lastevent
+from madrid.madrid
+Where properties_product_guid is not NULL
+GROUP BY properties_product_guid),
+
+---first date product shows up
+firstproductdate as (Select properties_product_guid, min(time_stamp) as firstdate
+from madrid.madrid
+Where properties_product_guid is not null
+GROUP BY properties_product_guid),
+
+---country of product
+product_countries as (Select properties_product_guid, time_stamp, strleft(context_locale,2) as language,
+strright(context_locale,2) as country
+from madrid.madrid
+Where properties_product_guid is not null)
+
+Select Sum(cntusers) as countdistinctusers, product_usercount.properties_product_guid, language, country, properties_product_type, firstdate
+from product_usercount
+Left JOIN product_countries on product_usercount.properties_product_guid=product_countries.properties_product_guid
+Left Join firstproductdate on firstproductdate.properties_product_guid=product_usercount.properties_product_guid
+INNER JOIN latestevent on latestevent.properties_product_guid=product_countries.properties_product_guid and
+lastevent=time_stamp
+GROUP BY product_usercount.properties_product_guid, properties_product_type, country, language, firstdate
