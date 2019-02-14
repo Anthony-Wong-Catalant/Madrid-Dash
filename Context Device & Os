@@ -1,0 +1,21 @@
+--- table for max time stamp to get latest os version
+with LatestOs as (Select context_device_id,
+Max(time_stamp) as lastdate, context_os_name, context_device_model, strright(context_locale,2) as country,
+strleft(context_locale,2) as language
+from madrid.madrid
+GROUP BY context_device_id, context_os_name, context_device_model, language, country),
+
+--- table to associate devices with products 
+Product as (Select context_device_id, 
+Max(case when properties_product_type='eddie' then 1 else 0 end) as 'eddie',
+Max(case when properties_product_type='gingerCheevers' then 1 else 0 end) as 'gingerCheevers',
+Max(case when properties_product_type='professor' then 1 else 0 end) as 'professor'
+From madrid.madrid
+GROUP BY context_device_id)
+
+Select count(distinct LatestOs.context_device_id) as cntdevices ,Latestos.context_os_name,latestos.context_device_model,context_os_version as latestosversion, 
+country, language, eddie, gingercheevers, professor
+from LatestOs
+Inner Join Madrid.Madrid on latestos.context_device_id=madrid.context_device_id and lastdate=madrid.time_stamp
+Left Join Product on Latestos.context_device_id=Product.context_device_id
+group by Latestos.context_os_name,latestos.context_device_model, latestosversion, eddie, gingercheevers, professor, country, language
